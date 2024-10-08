@@ -1,3 +1,171 @@
+import os
 import streamlit as st
+from PIL import Image
+from tools_1.run_methods import *
 
-st.write('Hello world!')
+# Set initial theme in session state
+if 'theme' not in st.session_state:
+    st.session_state['theme'] = 'dark'
+
+# Toggle theme function
+def toggle_theme():
+    if st.session_state['theme'] == 'dark':
+        st.session_state['theme'] = 'light'
+    else:
+        st.session_state['theme'] = 'dark'
+
+# Set the CSS based on the theme
+if st.session_state['theme'] == 'dark':
+    st.set_page_config(page_title="Milliman Interactive User Space", page_icon="graphics/Milliman_logo_Li.ico", layout="wide")
+    st.markdown(
+        """
+        <style>
+        .stApp {
+            background-color: #222b36;
+        }
+        .css-18e3th9, .css-1d391kg {
+            background-color: #f4f4f4;
+        }
+        .css-1aumxhk, .css-1v3fvcr, .css-1h4f60p, h1, h2, h3, h4, h5, h6, p, label { 
+            color: #FFFFFF;
+        }
+        .theme-button {
+            background-color: #F4F4F4;
+            color: #50BDFF;
+            border: 1px solid #FFFFFF;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+else:
+    st.set_page_config(page_title="Milliman Interactive User Space", page_icon="graphics/Milliman_logo_Li.ico", layout="wide")
+    st.markdown(
+        """
+        <style>
+        .stApp {
+            background-color: #F4F4F4;
+        }
+        .css-18e3th9, .css-1d391kg {
+            background-color: #222b36;
+        }
+        .css-1aumxhk, .css-1v3fvcr, .css-1h4f60p, h1, h2, h3, h4, h5, h6, p, label { 
+            color: #222B36;
+        }
+        .theme-button {
+            background-color: #F4F4F4;
+            color: #000000;
+            border: 1px solid #000000;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+# Main content
+
+if st.session_state['theme'] == 'dark':
+    logo_path = r"graphics\Milliman_logo_Cloud.ico"
+    logo = Image.open(logo_path)
+    st.image(logo, width=60)  # Adjust the width as needed
+else:
+    logo_path = r"graphics\Milliman_logo_Obsidian.ico"
+    logo = Image.open(logo_path)
+    st.image(logo, width=60)  # Adjust the width as needed
+
+
+currwd = os.path.dirname(__file__); os.chdir(currwd)
+st.header("Milliman Interactive User Space")
+FileExtnSupported = [".xlsx", ".csv"]
+
+# Layout for theme toggle button
+col1, col2 = st.columns([9, 1])
+with col2:
+    if st.session_state['theme'] == 'dark':
+        theme_name = 'Theme: Dark'
+    else:
+        theme_name = 'Theme: Light'
+    theme_toggle = st.button(theme_name, key='theme_button', on_click=toggle_theme)
+    st.markdown(f'<style>.stButton button{{background-color: {"#50BDFF" if st.session_state["theme"] == "dark" else "#FFFFFF"}; color: {"#FFFFFF" if st.session_state["theme"] == "dark" else "#000000"}}}</style>', unsafe_allow_html=True)
+    
+# Tabs Setup
+Models, Input = st.tabs(['Models', 'Input'])
+
+# Tab: Models
+import streamlit as st
+# Create a dictionary to map folder names to their aliases
+model_aliases = {
+    "1_Traditional": "Traditional Product",
+    "2_Participating": "Participating Product",
+    "3_UnitLinked": "Unit Linked Product",
+    "4_NonPar+IFRS17": "Non Par Produt with IFRS 17"
+}
+
+
+# Get the list of model folders
+ModelsList_og = os.listdir("models")
+
+# Use the mapping to create a list of aliases
+ModelAliasesList = [model_aliases[model] for model in ModelsList_og if model in model_aliases]
+ModelsList = ModelAliasesList
+
+ModelsCol1, ModelsCol2, ModelsCol3 = Models.columns(3)
+
+with ModelsCol1:
+    st.subheader("Select the models to run:")
+    AllCheck = st.checkbox(label = "All", value = False)    
+    for i in range(len(ModelsList)):
+        exec(f"ModelCheck{i} = st.checkbox('{ModelsList[i]}', value = AllCheck)")
+
+with ModelsCol2:
+    st.subheader("Run settings")
+    OutputPath = st.text_input("Output Path", value = os.path.join(currwd,"results"))
+    BatchSize = st.text_input("Maximum batchsize (cannot exceed 2x10^5)", value = 10000)
+    StackTracing = st.checkbox("Stack Tracing (run-time report)", value = False)
+
+with ModelsCol3:
+    def RunModels():
+        try:
+            n = int(float(BatchSize))
+        except ValueError:
+            raise ValueError("Cannot convert this type into int")
+
+        for i, model in zip(range(len(ModelsList)), ModelsList):
+            if eval(f"ModelCheck{i} == True"):
+                st.write("Running: " + os.path.join(currwd, "models", model))
+                if StackTracing:
+                    stack_tracing(os.path.join(currwd, "models", model), ExportCB, OutputPath, FileTypeRadio)
+                else:
+                    run_model(os.path.join(currwd, "models", model), ExportCB, OutputPath, n, FileTypeRadio)
+
+    def CohortModels():
+        for i, model in zip(range(len(ModelsList)), ModelsList):
+            if eval(f"ModelCheck{i} == True"):
+                st.write("Running: " + os.path.join(currwd, "models", model))
+                cohort_model(os.path.join(currwd, "models", model), OutputPath, FileTypeRadio)
+
+    ModelsCol31, ModelsCol32 = ModelsCol3.columns(2)
+    with ModelsCol31:
+        ResultsButton = st.button("Aggregate", on_click = RunModels)
+    with ModelsCol32:
+        CohortButton = st.button("Cohort", on_click = CohortModels)
+    
+    st.write("Note: Batch-wise execution is not functional for Stack Tracing or Cohort")
+    ExportCB = st.checkbox("Export aggregate results", value = True)        
+    FileTypeRadio = st.radio("File type:", FileExtnSupported)
+
+# Tab: Inputs
+ModelsPath = os.path.join(currwd, "models")
+ModelCount = 0; fPCount = 0 ## counting variables for all models and 'FilePaths'
+with Input:
+    n = len(os.listdir(ModelsPath))
+    for i, ModelDir in zip(range(1, n+1), os.listdir(ModelsPath)):
+        with st.expander(ModelDir):
+            ModelPath = os.path.join(ModelsPath, ModelDir)
+            for subdir, dirs, files in os.walk(ModelPath):
+                for file in files:
+                    if file.endswith(tuple(FileExtnSupported)):
+                        ModelCount += 1; fPCount += 1
+                        exec(f"filePath_{fPCount} = os.path.join(subdir, file)")
+                        ButtonName = "".join((str(i), ' ', file.split(".")[0]))
+                        exec(f"Button_{ModelCount} = st.button(ButtonName, on_click = lambda: os.startfile(filePath_{fPCount}))")
