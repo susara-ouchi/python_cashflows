@@ -90,5 +90,5 @@ with col2:
     st.markdown(f'<style>.stButton button{{background-color: {"#50BDFF" if st.session_state["theme"] == "dark" else "#FFFFFF"}; color: {"#FFFFFF" if st.session_state["theme"] == "dark" else "#000000"}}}</style>', unsafe_allow_html=True)
    
    
-st.write("Hello")
+st.write("Hello there")
 
