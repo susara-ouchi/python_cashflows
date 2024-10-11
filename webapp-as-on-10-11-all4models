@@ -40,7 +40,7 @@ st.header("Milliman Interactive User Space")
 FileExtnSupported = [".xlsx", ".csv"]
 
 # Tabs Setup
-Models, Input, AboutUs = st.tabs(['Models', 'Input', 'About Us'])
+Models, Input = st.tabs(['Models', 'Input'])
 
 # Tab: Models
 import streamlit as st
@@ -48,7 +48,8 @@ import streamlit as st
 model_aliases = {
     "1_Traditional": "Traditional Product",
     "2_Participating": "Participating Product",
-    "3_UnitLinked": "Unit Linked Product"
+    "3_UnitLinked": "Unit Linked Product",
+    "4_NonPar+IFRS17": "Non Par Produt with IFRS 17"
 }
 
 # Get the list of model folders
@@ -109,21 +110,12 @@ ModelCount = 0; fPCount = 0 ## counting variables for all models and 'FilePaths'
 with Input:
     n = len(os.listdir(ModelsPath))
     for i, ModelDir in zip(range(1, n+1), os.listdir(ModelsPath)):
-        if ModelDir in model_aliases:  # Only include the first 3 models
-            with st.expander(model_aliases[ModelDir]):
-                ModelPath = os.path.join(ModelsPath, ModelDir)
-                for subdir, dirs, files in os.walk(ModelPath):
-                    for file in files:
-                        if file.endswith(tuple(FileExtnSupported)):
-                            ModelCount += 1; fPCount += 1
-                            exec(f"filePath_{fPCount} = os.path.join(subdir, file)")
-                            ButtonName = "".join((str(i), ' ', file.split(".")[0]))
-                            exec(f"Button_{ModelCount} = st.button(ButtonName, on_click = lambda: os.startfile(filePath_{fPCount}))")
-
-# Tab: About Us
-with AboutUs:
-    st.header("About Us")
-    st.write("""
-        Milliman is among the world's largest providers of actuarial and related products and services. 
-        We are dedicated to helping our clients protect the health and financial well-being of people everywhere.
-    """)
+        with st.expander(ModelDir):
+            ModelPath = os.path.join(ModelsPath, ModelDir)
+            for subdir, dirs, files in os.walk(ModelPath):
+                for file in files:
+                    if file.endswith(tuple(FileExtnSupported)):
+                        ModelCount += 1; fPCount += 1
+                        exec(f"filePath_{fPCount} = os.path.join(subdir, file)")
+                        ButtonName = "".join((str(i), ' ', file.split(".")[0]))
+                        exec(f"Button_{ModelCount} = st.button(ButtonName, on_click = lambda: os.startfile(filePath_{fPCount}))")

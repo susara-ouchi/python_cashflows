@@ -3,7 +3,6 @@ import streamlit as st
 from PIL import Image
 from tools_1.run_methods import *
 
-
 # Set initial theme in session state
 if 'theme' not in st.session_state:
     st.session_state['theme'] = 'dark'
@@ -64,7 +63,6 @@ else:
     )
 
 # Main content
-
 if st.session_state['theme'] == 'dark':
     logo_path = r"graphics\Milliman_logo_Cloud.ico"
     logo = Image.open(logo_path)
