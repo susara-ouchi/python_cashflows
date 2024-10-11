@@ -76,7 +76,6 @@ def stack_tracing(modelpath: str, export: bool, OutputPath: str, file_type: str 
         OutputPath (str): a single folder to all the results
         file_type (str, optional): default is '.csv'; another option is '.xlsx'
     """
-
     StartTime = time.time()
     modelname = modelpath[modelpath.rfind("\\") + 1:]
     FileName = modelname+"_aggregate"; del(modelname)

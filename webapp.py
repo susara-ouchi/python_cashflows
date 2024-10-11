@@ -1,4 +1,5 @@
 import os
+import time
 import streamlit as st
 from PIL import Image
 from tools_1.run_methods import *
@@ -32,21 +33,28 @@ st.markdown(
 
 # Main content
 logo_path = r"graphics\Milliman_logo_Cloud.ico"
+# logo_path = r"graphics\MIL-Corporate-Logo-Cloud2x.png"
+
 logo = Image.open(logo_path)
-st.image(logo, width=60)  # Adjust the width as needed
+st.image(logo, width=60)  # Adjust the width as needed  (60 for small log0, 120 for large logo)
 
 currwd = os.path.dirname(__file__); os.chdir(currwd)
 st.header("Milliman Interactive User Space")
+# st.subheader("Cashflows Modelling using Python")
+
 FileExtnSupported = [".xlsx", ".csv"]
 
+st.write("This web-based GUI enables users to input files, configure run settings, and run actuarial models efficiently.")
+
 # Tabs Setup
-Models, Input, AboutUs = st.tabs(['Models', 'Input', 'About Us'])
+Models, Input = st.tabs(['Models', 'Input'])
+# Models, Input, AboutUs = st.tabs(['Models', 'Input', 'About Us'])
 
 # Tab: Models
 import streamlit as st
 # Create a dictionary to map folder names to their aliases
 model_aliases = {
-    "1_Traditional": "Traditional Product",
+    "1_Traditional": "Non-Par (Traditional) Product",
     "2_Participating": "Participating Product",
     "3_UnitLinked": "Unit Linked Product"
 }
@@ -56,7 +64,8 @@ ModelsList_og = os.listdir("models")
 
 # Use the mapping to create a list of aliases
 ModelAliasesList = [model_aliases[model] for model in ModelsList_og if model in model_aliases]
-ModelsList = ModelAliasesList
+# ModelsList = ModelAliasesList
+ModelsList = ModelsList_og
 
 ModelsCol1, ModelsCol2, ModelsCol3 = Models.columns(3)
 
@@ -64,7 +73,7 @@ with ModelsCol1:
     st.subheader("Select the models to run:")
     AllCheck = st.checkbox(label = "All", value = False)    
     for i in range(len(ModelsList)):
-        exec(f"ModelCheck{i} = st.checkbox('{ModelsList[i]}', value = AllCheck)")
+        exec(f"ModelCheck{i} = st.checkbox('{ModelAliasesList[i]}', value = AllCheck)")
 
 with ModelsCol2:
     st.subheader("Run settings")
@@ -91,7 +100,34 @@ with ModelsCol3:
         for i, model in zip(range(len(ModelsList)), ModelsList):
             if eval(f"ModelCheck{i} == True"):
                 st.write("Running: " + os.path.join(currwd, "models", model))
+                st.write("Working")
                 cohort_model(os.path.join(currwd, "models", model), OutputPath, FileTypeRadio)
+            
+
+    # def CohortModels():
+    #     total_models = sum(eval(f"ModelCheck{i}") for i in range(len(ModelsList)))  # Count the total number of selected models
+        
+    #     if total_models == 0:
+    #         st.warning("No models selected to run.")
+    #         return
+
+    #     completed_models = 0
+
+    #     for i, model in zip(range(len(ModelsList)), ModelsList):
+    #         if eval(f"ModelCheck{i} == True"):
+    #             start_time = time.time()  # Record the start time
+                
+    #             st.write(f"Running: {os.path.join(currwd, 'models', model)}")
+    #             cohort_model(os.path.join(currwd, "models", model), OutputPath, FileTypeRadio)
+                
+    #             elapsed_time = time.time() - start_time  # Calculate the elapsed time
+    #             elapsed_time_str = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))  # Format the elapsed time
+                
+    #             completed_models += 1
+    #             st.write(f"Completed: {os.path.join(currwd, 'models', model)} in {elapsed_time_str}")
+        
+    #     st.success("All selected models have been processed.")
+
 
     ModelsCol31, ModelsCol32 = ModelsCol3.columns(2)
     with ModelsCol31:
@@ -121,9 +157,9 @@ with Input:
                             exec(f"Button_{ModelCount} = st.button(ButtonName, on_click = lambda: os.startfile(filePath_{fPCount}))")
 
 # Tab: About Us
-with AboutUs:
-    st.header("About Us")
-    st.write("""
-        Milliman is among the world's largest providers of actuarial and related products and services. 
-        We are dedicated to helping our clients protect the health and financial well-being of people everywhere.
-    """)
+# with AboutUs:
+#     st.header("About Us")
+#     st.write("""
+#         Milliman is among the world's largest providers of actuarial and related products and services. 
+#         We are dedicated to helping our clients protect the health and financial well-being of people everywhere.
+#     """)
