@@ -100,7 +100,6 @@ with ModelsCol3:
         for i, model in zip(range(len(ModelsList)), ModelsList):
             if eval(f"ModelCheck{i} == True"):
                 st.write("Running: " + os.path.join(currwd, "models", model))
-                st.write("Working")
                 cohort_model(os.path.join(currwd, "models", model), OutputPath, FileTypeRadio)
             
 
